@@ -50,7 +50,7 @@ def get_dataset(dataset):
 
 def get_actors():
     """
-    Downloads datasets from IMDb to generate and returns DataFrame 
+    Downloads datasets from IMDb to generate and return a DataFrame 
     with the names of the 10 actors that did the most movies in the
     last 10 years and the ammount of movies each one did.
     """
