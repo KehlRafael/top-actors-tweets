@@ -1,0 +1,4 @@
+# Ignore everything in this directory, because it's the reports
+*
+# Except this file
+!.gitignore
