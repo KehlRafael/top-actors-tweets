@@ -17,7 +17,7 @@ Receives the dataset name as input and returns the path to the downloaded datase
 Downloads datasets from IMDb to generate and return a DataFrame with the names of the 10 actors that did the most movies in the last 10 years and the ammount of movies each one did. You can also pass any of the three optional parameters to provide the path for any IMDb dataset you might already have instead of downloading a new one.
 
 - `twitter_auth()`:
-Authenticates to Twitter API using keys stored into environment variables. THe variables used are `tw_consumer_key`, `tw_consumer_secret`, `tw_key` 
+Authenticates to Twitter API using keys stored into environment variables. The variables used are `tw_consumer_key`, `tw_consumer_secret`, `tw_key` 
 and `tw_secret`.
 
 - `reports_path(filename)` and `data_path(filename)`: 
