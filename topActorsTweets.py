@@ -26,6 +26,26 @@ def get_dataset_url(dataset):
         return None
 
 
+def twitter_auth():
+    """Authenticate to Twitter API"""
+    auth = tweepy.OAuthHandler(os.environ['tw_consumer_key'],
+                               os.environ['tw_consumer_secret'])
+    auth.set_access_token(os.environ['tw_key'],
+                          os.environ['tw_secret'])
+
+    return tweepy.API(auth)
+
+
+def reports_path(filename):
+    """Returns path for reports"""
+    return os.path.join('reports',datetime.now().strftime("%Y%m%d%H%M%S-") + filename)
+
+
+def data_path(filename):
+    """Returns path for datasets"""
+    return os.path.join("data",date.today().strftime('%Y%m%d-') + filename)
+
+
 def get_dataset(dataset):
     """Downloads the dataset to data/ddmmyyyy-dataset.tsv.gz"""
     # Gets URL then checks if file was already downloaded today. If so, just returns path.
@@ -48,7 +68,7 @@ def get_dataset(dataset):
         return datafile
 
 
-def get_actors():
+def get_actors(titleBasics = None, titlePrincipals = None, nameBasics = None):
     """
     Downloads datasets from IMDb to generate and return a DataFrame 
     with the names of the 10 actors that did the most movies in the
@@ -56,8 +76,12 @@ def get_actors():
     """
 
     # Import all titles from IMDb
-    movies = pd.read_csv(get_dataset("title.basics"), sep='\t', compression="gzip",
-                         usecols=["tconst", "titleType", "startYear"], low_memory=False)
+    if titleBasics == None:
+        movies = pd.read_csv(get_dataset("title.basics"), sep='\t', compression="gzip",
+                             usecols=["tconst", "titleType", "startYear"], low_memory=False)
+    else:
+        movies = pd.read_csv(titleBasics, sep='\t', compression="gzip",
+                             usecols=["tconst", "titleType", "startYear"], low_memory=False)
 
     # Filter only movies from all kinds of title types
     movies = movies[movies["titleType"] == "movie"]
@@ -69,8 +93,12 @@ def get_actors():
     movies = movies[(movies["startYear"] >= date.today().year - 10) & (movies["startYear"] <= date.today().year)]
 
     # Now get the principals so we can get 10 actors/actresses that did the most movies in the last 10 years
-    title_principals = pd.read_csv(get_dataset("title.principals"), sep='\t', compression="gzip",
-                                   usecols=["tconst", "ordering", "nconst", "category"], low_memory=False)
+    if titlePrincipals == None:
+        title_principals = pd.read_csv(get_dataset("title.principals"), sep='\t', compression="gzip", 
+                                       usecols=["tconst", "ordering", "nconst", "category"], low_memory=False)
+    else:
+        title_principals = pd.read_csv(titlePrincipals, sep='\t', compression="gzip", 
+                                       usecols=["tconst", "ordering", "nconst", "category"], low_memory=False)
 
     # Filter to get only actors/actresses
     title_principals = title_principals[(title_principals["category"] == "actor") |
@@ -88,33 +116,17 @@ def get_actors():
     del lst
 
     # Import names from IMDb and convert types
-    names = pd.read_csv(get_dataset("name.basics"), sep='\t', compression="gzip",
-                        usecols=["nconst", "primaryName"], low_memory=False)
+    if nameBasics == None:
+        names = pd.read_csv(get_dataset("name.basics"), sep='\t', compression="gzip",
+                            usecols=["nconst", "primaryName"], low_memory=False)
+    else:
+        names = pd.read_csv(nameBasics, sep='\t', compression="gzip",
+                            usecols=["nconst", "primaryName"], low_memory=False)
 
     return pd.merge(actors, names, on='nconst')
 
 
-def twitter_auth():
-    """Authenticate to Twitter API"""
-    auth = tweepy.OAuthHandler(os.environ['tw_consumer_key'],
-                               os.environ['tw_consumer_secret'])
-    auth.set_access_token(os.environ['tw_key'],
-                          os.environ['tw_secret'])
-
-    return tweepy.API(auth)
-
-
-def reports_path(filename):
-    """Returns path for reports"""
-    return os.path.join('reports',datetime.now().strftime("%Y%m%d%H%M%S-") + filename)
-
-
-def data_path(filename):
-    """Returns path for datasets"""
-    return os.path.join("data",date.today().strftime('%Y%m%d-') + filename)
-
-
-def tweets_report():
+def tweets_report(titleBasics = None, titlePrincipals = None, nameBasics = None):
     """
     Export to csv files the last 10 tweets about the 10 actors
     that did the most movies in the last 10 years.
@@ -123,7 +135,7 @@ def tweets_report():
     api = twitter_auth()
 
     # Get the list of actors from our data and also prints it to csv
-    actors = get_actors()
+    actors = get_actors(titleBasics, titlePrincipals, nameBasics)
     actors = actors.convert_dtypes()
     actors.to_csv(reports_path('ActorsWithMostMovies.csv'))
 
